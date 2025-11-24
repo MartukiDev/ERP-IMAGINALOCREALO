@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
 import { Eye, Plus, Trash2, ShoppingCart, PackagePlus } from "lucide-react"
 import { useProducts } from "@/lib/supabase/hooks"
 import { supabase } from "@/lib/supabase/client"
@@ -28,12 +27,8 @@ export function Products() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [newProduct, setNewProduct] = useState({
     name: "",
-    description: "",
     totalCost: "",
     suggestedPrice: "",
-    printTime: "",
-    materialCost: "",
-    energyCost: "",
     stock: "0"
   })
 
@@ -75,12 +70,8 @@ export function Products() {
         // @ts-ignore
         .insert({
           name: newProduct.name,
-          description: newProduct.description || null,
           total_cost: parseFloat(newProduct.totalCost),
           suggested_price: parseFloat(newProduct.suggestedPrice),
-          print_time_minutes: newProduct.printTime ? parseInt(newProduct.printTime) : null,
-          material_cost: newProduct.materialCost ? parseFloat(newProduct.materialCost) : null,
-          energy_cost: newProduct.energyCost ? parseFloat(newProduct.energyCost) : null,
           stock: parseInt(newProduct.stock) || 0,
           created_by: session.user.id
         })
@@ -90,12 +81,8 @@ export function Products() {
       setIsCreateDialogOpen(false)
       setNewProduct({
         name: "",
-        description: "",
         totalCost: "",
         suggestedPrice: "",
-        printTime: "",
-        materialCost: "",
-        energyCost: "",
         stock: "0"
       })
       await refetch()
@@ -273,8 +260,8 @@ export function Products() {
               <DialogTitle>Crear nuevo producto</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
                   <Label htmlFor="productName">Nombre del producto *</Label>
                   <Input
                     id="productName"
@@ -283,75 +270,31 @@ export function Products() {
                     placeholder="Ej: Figura decorativa Star Wars"
                   />
                 </div>
-                
-                <div className="md:col-span-2">
-                  <Label htmlFor="productDescription">Descripción</Label>
-                  <Textarea
-                    id="productDescription"
-                    value={newProduct.description}
-                    onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                    placeholder="Descripción del producto..."
-                    rows={3}
-                  />
-                </div>
 
-                <div>
-                  <Label htmlFor="totalCost">Costo total (CLP) *</Label>
-                  <Input
-                    id="totalCost"
-                    type="number"
-                    step="0.01"
-                    value={newProduct.totalCost}
-                    onChange={(e) => setNewProduct({ ...newProduct, totalCost: e.target.value })}
-                    placeholder="Ej: 5000"
-                  />
-                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="totalCost">Costo total (CLP) *</Label>
+                    <Input
+                      id="totalCost"
+                      type="number"
+                      step="0.01"
+                      value={newProduct.totalCost}
+                      onChange={(e) => setNewProduct({ ...newProduct, totalCost: e.target.value })}
+                      placeholder="Ej: 5000"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="suggestedPrice">Precio sugerido (CLP) *</Label>
-                  <Input
-                    id="suggestedPrice"
-                    type="number"
-                    step="0.01"
-                    value={newProduct.suggestedPrice}
-                    onChange={(e) => setNewProduct({ ...newProduct, suggestedPrice: e.target.value })}
-                    placeholder="Ej: 8000"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="materialCost">Costo material (CLP)</Label>
-                  <Input
-                    id="materialCost"
-                    type="number"
-                    step="0.01"
-                    value={newProduct.materialCost}
-                    onChange={(e) => setNewProduct({ ...newProduct, materialCost: e.target.value })}
-                    placeholder="Ej: 3000"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="energyCost">Costo energía (CLP)</Label>
-                  <Input
-                    id="energyCost"
-                    type="number"
-                    step="0.01"
-                    value={newProduct.energyCost}
-                    onChange={(e) => setNewProduct({ ...newProduct, energyCost: e.target.value })}
-                    placeholder="Ej: 500"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="printTime">Tiempo de impresión (minutos)</Label>
-                  <Input
-                    id="printTime"
-                    type="number"
-                    value={newProduct.printTime}
-                    onChange={(e) => setNewProduct({ ...newProduct, printTime: e.target.value })}
-                    placeholder="Ej: 180"
-                  />
+                  <div>
+                    <Label htmlFor="suggestedPrice">Precio sugerido (CLP) *</Label>
+                    <Input
+                      id="suggestedPrice"
+                      type="number"
+                      step="0.01"
+                      value={newProduct.suggestedPrice}
+                      onChange={(e) => setNewProduct({ ...newProduct, suggestedPrice: e.target.value })}
+                      placeholder="Ej: 8000"
+                    />
+                  </div>
                 </div>
 
                 <div>
