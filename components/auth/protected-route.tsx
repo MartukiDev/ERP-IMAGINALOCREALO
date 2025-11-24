@@ -13,23 +13,25 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useUser()
   const router = useRouter()
   const [showTimeout, setShowTimeout] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
-    // Si después de 3 segundos sigue cargando, mostrar opción de recargar
+    // Si después de 2 segundos sigue cargando, mostrar opción de recargar
     const timeoutId = setTimeout(() => {
       if (loading) {
         setShowTimeout(true)
       }
-    }, 3000)
+    }, 2000)
 
     return () => clearTimeout(timeoutId)
   }, [loading])
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !redirecting) {
+      setRedirecting(true)
       router.push("/login")
     }
-  }, [user, loading, router])
+  }, [user, loading, router, redirecting])
 
   if (loading) {
     return (
@@ -59,3 +61,4 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   return <>{children}</>
 }
+

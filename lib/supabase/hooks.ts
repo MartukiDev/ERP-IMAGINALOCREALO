@@ -368,6 +368,14 @@ export function useUser() {
     let isMounted = true
     let authInitialized = false
     
+    // Timeout de seguridad - forzar que loading termine después de 5 segundos
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('⚠️ Auth timeout - forcing loading to false')
+        setLoading(false)
+      }
+    }, 5000)
+    
     // Función para cargar datos del usuario
     const loadUserData = async (userId: string) => {
       try {
@@ -409,13 +417,13 @@ export function useUser() {
         
         if (error) {
           console.error('❌ Error getting session:', error)
-          setLoading(false)
+          if (isMounted) setLoading(false)
           return
         }
         
         if (session?.user) {
           console.log('✅ Session found:', session.user.email)
-          setUser(session.user)
+          if (isMounted) setUser(session.user)
           
           // Cargar datos del usuario (intentar pero no bloquear si falla)
           const data = await loadUserData(session.user.id)
@@ -424,8 +432,10 @@ export function useUser() {
           }
         } else {
           console.log('ℹ️ No session found')
-          setUser(null)
-          setUserData(null)
+          if (isMounted) {
+            setUser(null)
+            setUserData(null)
+          }
         }
         
         if (isMounted) {
@@ -461,16 +471,15 @@ export function useUser() {
         setUserData(null)
       }
       
-      // Actualizar loading solo para eventos importantes
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        if (isMounted) {
-          setLoading(false)
-        }
+      // Asegurar que loading siempre se actualice
+      if (isMounted) {
+        setLoading(false)
       }
     })
 
     return () => {
       isMounted = false
+      clearTimeout(safetyTimeout)
       subscription.unsubscribe()
     }
   }, [])
