@@ -9,13 +9,26 @@ type Quotation = Database['public']['Tables']['quotations']['Row']
 type Machine = Database['public']['Tables']['machines']['Row']
 type Transaction = Database['public']['Tables']['transactions']['Row']
 
+// Caché simple para productos
+let productsCache: Product[] | null = null
+let productsCacheTime = 0
+const CACHE_DURATION = 30000 // 30 segundos
+
 // Hook para productos
 export function useProducts() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const [products, setProducts] = useState<Product[]>(productsCache || [])
+  const [loading, setLoading] = useState(!productsCache)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Si hay caché válido, usarlo
+    const now = Date.now()
+    if (productsCache && (now - productsCacheTime) < CACHE_DURATION) {
+      setProducts(productsCache)
+      setLoading(false)
+      return
+    }
+
     fetchProducts()
     
     // Suscripción en tiempo real
@@ -41,7 +54,11 @@ export function useProducts() {
         .order('created_at', { ascending: false })
       
       if (error) throw error
-      setProducts(data || [])
+      const products = data || []
+      setProducts(products)
+      // Actualizar caché
+      productsCache = products
+      productsCacheTime = Date.now()
     } catch (err: any) {
       setError(err.message)
       console.error('Error fetching products:', err)
@@ -53,13 +70,25 @@ export function useProducts() {
   return { products, loading, error, refetch: fetchProducts }
 }
 
+// Caché para materiales
+let materialsCache: Material[] | null = null
+let materialsCacheTime = 0
+
 // Hook para materiales
 export function useMaterials() {
-  const [materials, setMaterials] = useState<Material[]>([])
-  const [loading, setLoading] = useState(true)
+  const [materials, setMaterials] = useState<Material[]>(materialsCache || [])
+  const [loading, setLoading] = useState(!materialsCache)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Si hay caché válido, usarlo
+    const now = Date.now()
+    if (materialsCache && (now - materialsCacheTime) < CACHE_DURATION) {
+      setMaterials(materialsCache)
+      setLoading(false)
+      return
+    }
+
     fetchMaterials()
     
     const subscription = supabase
@@ -84,7 +113,11 @@ export function useMaterials() {
         .order('created_at', { ascending: false })
       
       if (error) throw error
-      setMaterials(data || [])
+      const materials = data || []
+      setMaterials(materials)
+      // Actualizar caché
+      materialsCache = materials
+      materialsCacheTime = Date.now()
     } catch (err: any) {
       setError(err.message)
       console.error('Error fetching materials:', err)
@@ -368,13 +401,13 @@ export function useUser() {
     let isMounted = true
     let authInitialized = false
     
-    // Timeout de seguridad - forzar que loading termine después de 5 segundos
+    // Timeout de seguridad - forzar que loading termine después de 2 segundos
     const safetyTimeout = setTimeout(() => {
       if (isMounted && loading) {
         console.warn('⚠️ Auth timeout - forcing loading to false')
         setLoading(false)
       }
-    }, 5000)
+    }, 2000)
     
     // Función para cargar datos del usuario
     const loadUserData = async (userId: string) => {

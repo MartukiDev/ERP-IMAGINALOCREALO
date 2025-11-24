@@ -1,16 +1,28 @@
 "use client"
 
-import { useState } from "react"
+import { useState, lazy, Suspense } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { Header } from "@/components/header"
-import { Dashboard } from "@/components/sections/dashboard"
-import { MaterialInventory } from "@/components/sections/material-inventory"
-import { Quotations } from "@/components/sections/quotations"
-import { Products } from "@/components/sections/products"
-import { Sales } from "@/components/sections/sales"
-import { Finance } from "@/components/sections/finance"
-import { Reports } from "@/components/sections/reports"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { Spinner } from "@/components/ui/spinner"
+
+// Lazy loading de componentes para mejorar rendimiento
+const Dashboard = lazy(() => import("@/components/sections/dashboard").then(m => ({ default: m.Dashboard })))
+const MaterialInventory = lazy(() => import("@/components/sections/material-inventory").then(m => ({ default: m.MaterialInventory })))
+const Quotations = lazy(() => import("@/components/sections/quotations").then(m => ({ default: m.Quotations })))
+const Products = lazy(() => import("@/components/sections/products").then(m => ({ default: m.Products })))
+const Sales = lazy(() => import("@/components/sections/sales").then(m => ({ default: m.Sales })))
+const Finance = lazy(() => import("@/components/sections/finance").then(m => ({ default: m.Finance })))
+const Reports = lazy(() => import("@/components/sections/reports").then(m => ({ default: m.Reports })))
+
+// Componente de loading para las secciones
+function SectionLoader() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <Spinner className="h-8 w-8 text-primary" />
+    </div>
+  )
+}
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState("dashboard")
@@ -48,6 +60,16 @@ export default function Home() {
         />
         <div className="flex flex-col flex-1 overflow-hidden w-full lg:w-auto">
           <Header onMenuClick={() => setSidebarOpen(true)} />
+          <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+            <Suspense fallback={<SectionLoader />}>
+              {renderSection()}
+            </Suspense>
+          </main>
+        </div>
+      </div>
+    </ProtectedRoute>
+  )
+}
           <main className="flex-1 overflow-y-auto p-4 lg:p-6">
             {renderSection()}
           </main>

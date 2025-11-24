@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useUser } from "@/lib/supabase/hooks"
+import { useAuth } from "@/lib/supabase/auth-provider"
 import { Spinner } from "@/components/ui/spinner"
 
 interface ProtectedRouteProps {
@@ -10,28 +10,26 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useUser()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const [showTimeout, setShowTimeout] = useState(false)
-  const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
-    // Si después de 2 segundos sigue cargando, mostrar opción de recargar
+    // Mostrar mensaje de timeout después de 1 segundo
     const timeoutId = setTimeout(() => {
       if (loading) {
         setShowTimeout(true)
       }
-    }, 2000)
+    }, 1000)
 
     return () => clearTimeout(timeoutId)
   }, [loading])
 
   useEffect(() => {
-    if (!loading && !user && !redirecting) {
-      setRedirecting(true)
+    if (!loading && !user) {
       router.push("/login")
     }
-  }, [user, loading, router, redirecting])
+  }, [user, loading, router])
 
   if (loading) {
     return (
@@ -44,7 +42,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
               <p className="text-sm text-muted-foreground">Esto está tardando más de lo normal</p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
               >
                 Recargar página
               </button>
